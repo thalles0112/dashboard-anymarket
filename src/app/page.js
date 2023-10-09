@@ -1,113 +1,235 @@
-import Image from 'next/image'
+'use client'
+import { useEffect, useState } from 'react'
+import './styles.css'
+import {AiOutlineMenu} from 'react-icons/ai'
+import axios from 'axios'
+import { produce } from 'immer'
+import Link from 'next/link'
+
+import { backend } from './requests'
 
 export default function Home() {
+  const [menu, setMenu] = useState(false)
+  const [resumo, setResumo] = useState({'marketplaces': [], 'resumo':{'pedidos':0, 'valor':0}, 'mais_vendidos':[]})
+  const [cancelamentos, setCancelamentos] = useState([])
+  const [selectedMarketPlaces, setSelectedMarketplaces] = useState([])
+  const [data_inicio, setDataInicio] = useState(new Date().toISOString())
+  const [data_final, setDataFinal] = useState(new Date().toISOString())
+  const [marketplaces, setMarketplaces] = useState([])
+  useEffect(()=>{
+    async function getMarketplacesHandler(){
+      const marketplaces = await axios.get(`${backend}/get-marketplaces`)
+      if (marketplaces.data){
+        setMarketplaces(marketplaces.data)
+      }
+    }
+    getMarketplacesHandler()
+  },[])
+  
+
+
+  
+  function setMenuHandler(){
+    setMenu(!menu)
+  }
+
+  async function getResumoHandler(){
+    const resp = await axios.post(`${backend}/resumo/`, {
+      'data-inicio': data_inicio,
+      'data-final': data_final,
+      'marketplaces': [
+        ...selectedMarketPlaces
+      ]
+    })
+    if(resp.data){
+      setResumo(resp.data)
+    }
+
+    const c_resp = await axios.post(`${backend}/cancelamentos/`, {
+      'data-inicio': data_inicio,
+      'data-final': data_final,
+      'marketplaces': [
+        ...selectedMarketPlaces
+      ],
+    })
+    if(c_resp.data){
+      setCancelamentos(c_resp.data)
+    }
+  }
+
+  function setSelectedMarketplacesHandler(marketplace){
+    if(selectedMarketPlaces.includes(marketplace)){
+      const marketplaceIndex = selectedMarketPlaces.indexOf(marketplace)
+      const nextState = produce(selectedMarketPlaces, draft=>{
+        draft.splice(marketplaceIndex, 1)
+      })
+
+      setSelectedMarketplaces(nextState)
+
+    }
+    else{
+      const nextState = produce(selectedMarketPlaces, draft=>{
+        draft.push(marketplace)
+      })
+
+      setSelectedMarketplaces(nextState)
+      
+    }
+
+  }
+
+  
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.js</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <main className='h-screen'>
+      <header className='h-20 w-full flex justify-center'>
+        <div className='w-10/12 flex items-center text-white'>
+              <button onClick={setMenuHandler} className='text-white' ><AiOutlineMenu size={24}/></button>
+              <h1 className='text-white' >Dash AnyMarket</h1>
+              <Link className='mx-5' href={'importacao'}>Importação por planilha</Link>
         </div>
+      </header>
+
+    <div className='h-20 w-full flex justify-center'>
+      <div className='page-content w-10/12  flex items-center h-full flex flex-col'>
+        
+        <aside className={`filter-menu fixed right-0 h-full top-0 ${menu?'open':''}`}>
+          <ul>
+            <li>
+              <h2>Filtrar Período</h2>
+              <div className='text-black'>
+                <input onChange={e=>{setDataInicio(e.target.value)}} type='date'/> <span>até</span> <input onChange={e=>{setDataFinal((e.target.value))}} type='date'/>
+              </div>
+            </li>
+
+            <li>
+              <h2>Filtrar Marketplace</h2>
+              <div className='text-black flex flex-col justify-flex-start'>
+                {marketplaces.map((marketplace, idx)=>{
+                  return(
+                    <div>
+                      <input key={idx} type="checkbox" onChange={()=>setSelectedMarketplacesHandler(marketplace.marketplace)}/><span>{marketplace.marketplace}</span>
+                    </div>
+                  )
+                })}
+                
+                  
+              </div>
+            </li>
+
+
+          </ul>
+          <button className='border rounded px-3 py-2' onClick={getResumoHandler}>Filtrar</button>
+        </aside>
+   
+        
+        <div className='panel-main w-6/12'>
+          <div className='panel-header'><h2>Resumo</h2></div> 
+          <table className="w-full">
+            <tr className="w-full">
+              <td>Pedidos</td>
+              <td>{resumo.resumo.pedidos}</td>
+            </tr>
+
+            <tr>
+              <td>Ticket Médio</td>
+              <td>R$ {(resumo.resumo.valor / resumo.resumo.pedidos).toFixed(2)}</td>
+            </tr>
+
+            <tr>
+              <td>Valor Total</td>
+              <td>R$ {resumo.resumo.valor.toFixed(2)}</td>
+            </tr>
+          </table>
+
+        </div>
+
+
+
+        <div className='panel-main w-6/12'>
+          <div className='panel-header'><h2>Top Marketplaces</h2></div> 
+          <table  id='topMktp'>
+            <tr className='w-full'>
+              <th>Marketplace</th>
+              <th>Vendas</th>
+              <th>Valor</th>
+              <th>Ticket Médio</th>
+            </tr>
+            {
+              resumo.marketplaces.map((mktp, idx)=>{
+                return(
+                  <tr key={idx} className='w-full'>
+                    <td>{mktp.marketplace}</td>
+                    <td>{mktp.pedidos}</td>
+                    <td>R$ {mktp.valor_total.toFixed(2)}</td>
+                    <td>R$ {(mktp.valor_total.toFixed(2) / mktp.pedidos).toFixed(2)}</td>
+                  </tr>
+                )
+              })
+            }
+            
+
+          </table>
+        </div>
+
+
+        <div className='panel-main w-6/12'>
+          <div className='panel-header'><h2>Cancelamentos</h2> 
+           
+          </div> 
+          <table  id='topMktp'>
+            <tr className='w-full'>
+              <th>Marketplace</th>
+              <th>Pedidos Cancelados</th>
+              <th>Valor</th>
+              <th>Ticket Médio</th>
+            </tr>
+            {
+              cancelamentos.map((mktp, idx)=>{
+                return(
+                  <tr key={idx} className='w-full'>
+                    <td>{mktp.marketplace}</td>
+                    <td>{mktp.pedidos}</td>
+                    <td>R$ {mktp.valor_total.toFixed(2)}</td>
+                    <td>R$ {(mktp.valor_total.toFixed(2) / mktp.pedidos).toFixed(2)}</td>
+                  </tr>
+                )
+              })
+            }
+            
+
+          </table>
+          </div>         
+
+
+          <div className='panel-main w-6/12'>
+          <div className='panel-header'><h2>Produtos mais vendidos</h2></div> 
+            <table  id='topMktp'>
+              <tr className='w-full'>
+                <th>Sku</th>
+                <th>Título</th>
+                <th>Qtd. Pedidos</th>
+              </tr>
+              {
+                resumo.mais_vendidos.slice(0,10).map((produto, idx)=>{
+                  return(
+                      <tr key={idx}>
+                        <td>{produto.sku}</td>
+                        <td>{produto.titulo}</td>
+                        <td>{produto.qtd}</td>
+                      </tr>
+                  )
+                })
+              }
+              
+            </table>
+          </div>       
+
+
+           
       </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore the Next.js 13 playground.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+    </div>
+      
     </main>
   )
 }

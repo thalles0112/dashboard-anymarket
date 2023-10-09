@@ -1,0 +1,38 @@
+#topMktp{
+    width: 100% !important;
+    
+}
+
+
+
+table tr {
+    border-bottom: 1px white solid;
+    text-align: center;
+}
+
+@keyframes menuOpen {
+    0%{transform: translateX(0px);}
+    100% {transform: translateX(350px);}
+}
+
+@keyframes menuClose {
+    0% {transform: translateX(350px);}
+    100%{transform: translateX(0px);}
+}
+
+
+.filter-menu.open{
+    
+    animation: menuOpen 0.3s linear forwards;
+}
+
+.filter-menu{
+    
+    animation: menuClose 0.3s linear forwards;
+}
+
+@media only screen and (max-width: 700px){
+    .panel-main {
+        width: 100%;
+    }
+}
