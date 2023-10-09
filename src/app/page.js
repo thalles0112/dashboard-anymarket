@@ -126,6 +126,7 @@ export default function Home() {
         <div className='panel-main w-6/12'>
           <div className='panel-header'><h2>Resumo</h2></div> 
           <table className="w-full">
+            <tbody>
             <tr className="w-full">
               <td>Pedidos</td>
               <td>{resumo.resumo.pedidos}</td>
@@ -140,6 +141,7 @@ export default function Home() {
               <td>Valor Total</td>
               <td>R$ {resumo.resumo.valor.toFixed(2)}</td>
             </tr>
+            </tbody>
           </table>
 
         </div>
@@ -149,6 +151,7 @@ export default function Home() {
         <div className='panel-main w-6/12'>
           <div className='panel-header'><h2>Top Marketplaces</h2></div> 
           <table  id='topMktp'>
+            <tbody>
             <tr className='w-full'>
               <th>Marketplace</th>
               <th>Vendas</th>
@@ -168,7 +171,7 @@ export default function Home() {
               })
             }
             
-
+            </tbody>
           </table>
         </div>
 
@@ -178,6 +181,7 @@ export default function Home() {
            
           </div> 
           <table  id='topMktp'>
+            <tbody>
             <tr className='w-full'>
               <th>Marketplace</th>
               <th>Pedidos Cancelados</th>
@@ -197,7 +201,7 @@ export default function Home() {
               })
             }
             
-
+            </tbody>
           </table>
           </div>         
 
@@ -205,11 +209,13 @@ export default function Home() {
           <div className='panel-main w-6/12'>
           <div className='panel-header'><h2>Produtos mais vendidos</h2></div> 
             <table  id='topMktp'>
+              <tbody>
               <tr className='w-full'>
                 <th>Sku</th>
                 <th>Título</th>
                 <th>Qtd. Pedidos</th>
               </tr>
+
               {
                 resumo.mais_vendidos.slice(0,10).map((produto, idx)=>{
                   return(
@@ -221,7 +227,7 @@ export default function Home() {
                   )
                 })
               }
-              
+              </tbody>
             </table>
           </div>       
 
