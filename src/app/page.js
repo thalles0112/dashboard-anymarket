@@ -107,8 +107,8 @@ export default function Home() {
               <div className='text-black flex flex-col justify-flex-start'>
                 {marketplaces.map((marketplace, idx)=>{
                   return(
-                    <div>
-                      <input key={idx} type="checkbox" onChange={()=>setSelectedMarketplacesHandler(marketplace.marketplace)}/><span>{marketplace.marketplace}</span>
+                    <div key={`m${idx}`} >
+                      <input type="checkbox" onChange={()=>setSelectedMarketplacesHandler(marketplace.marketplace)}/><span>{marketplace.marketplace}</span>
                     </div>
                   )
                 })}
@@ -161,7 +161,7 @@ export default function Home() {
             {
               resumo.marketplaces.map((mktp, idx)=>{
                 return(
-                  <tr key={idx} className='w-full'>
+                  <tr key={`r${idx}`} className='w-full'>
                     <td>{mktp.marketplace}</td>
                     <td>{mktp.pedidos}</td>
                     <td>R$ {mktp.valor_total.toFixed(2)}</td>
@@ -191,7 +191,7 @@ export default function Home() {
             {
               cancelamentos.map((mktp, idx)=>{
                 return(
-                  <tr key={idx} className='w-full'>
+                  <tr key={`c${idx}`} className='w-full'>
                     <td>{mktp.marketplace}</td>
                     <td>{mktp.pedidos}</td>
                     <td>R$ {mktp.valor_total.toFixed(2)}</td>
@@ -219,7 +219,7 @@ export default function Home() {
               {
                 resumo.mais_vendidos.slice(0,10).map((produto, idx)=>{
                   return(
-                      <tr key={idx}>
+                      <tr key={`mv${idx}`}>
                         <td>{produto.sku}</td>
                         <td>{produto.titulo}</td>
                         <td>{produto.qtd}</td>
