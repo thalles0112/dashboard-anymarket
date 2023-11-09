@@ -124,7 +124,7 @@ export default function Home() {
    
         
         <div className='panel-main w-6/12'>
-          <div className='panel-header'><h2>Resumo</h2></div> 
+          <div className='panel-header'><h2>Resumo <strong>(incluindo apenas pedidos concluídos)</strong></h2></div> 
           <table className="w-full">
             <tbody>
             <tr className="w-full">
